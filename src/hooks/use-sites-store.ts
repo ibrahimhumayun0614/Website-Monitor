@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { MonitoredSite } from '@shared/types';
 import { toast } from 'sonner';
+type NewSitePayload = Omit<MonitoredSite, 'id' | 'status' | 'responseTime' | 'lastChecked' | 'history' | 'isRechecking'>;
 type SitesState = {
   sites: MonitoredSite[];
   isLoading: boolean;
@@ -9,7 +10,7 @@ type SitesState = {
 };
 type SitesActions = {
   fetchSites: () => Promise<void>;
-  addSite: (url: string) => Promise<void>;
+  addSite: (siteData: NewSitePayload) => Promise<void>;
   removeSite: (id: string) => Promise<void>;
   recheckSite: (id: string) => Promise<void>;
 };
@@ -36,18 +37,18 @@ const useSitesStore = create<SitesState & SitesActions>()(
         toast.error('Failed to load sites', { description: errorMessage });
       }
     },
-    addSite: async (url: string) => {
+    addSite: async (siteData: NewSitePayload) => {
       try {
         const response = await fetch('/api/sites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify(siteData),
         });
         if (!response.ok) throw new Error('Failed to add site.');
         const result = await response.json();
         if (result.success) {
           set({ sites: result.data });
-          toast.success('Site added successfully!', { description: `Now monitoring ${url}` });
+          toast.success('Site added successfully!', { description: `Now monitoring ${siteData.name}` });
         } else {
           throw new Error(result.error || 'An unknown error occurred.');
         }

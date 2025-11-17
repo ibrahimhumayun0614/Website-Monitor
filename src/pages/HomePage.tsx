@@ -9,7 +9,7 @@ import useSitesStore from '@/hooks/use-sites-store';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, Loader } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-const REFRESH_INTERVAL = 30000; // 30 seconds
+const REFRESH_INTERVAL = 60000; // 60 seconds
 export function HomePage() {
   const sites = useSitesStore((s) => s.sites);
   const isLoading = useSitesStore((s) => s.isLoading);
