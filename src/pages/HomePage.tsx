@@ -11,6 +11,7 @@ import { Plus, RefreshCw, Loader } from 'lucide-react';
 import { requestNotificationPermission, showSiteDownNotification, showSiteUpNotification } from '@/lib/notifications';
 import type { MonitoredSite } from '@shared/types';
 import { SiteCardSkeleton } from '@/components/SiteCardSkeleton';
+import { useSummaryNotifications } from '@/hooks/use-summary-notifications';
 const REFRESH_INTERVAL = 60000; // 60 seconds
 export function HomePage() {
   const sites = useSitesStore((s) => s.sites);
@@ -21,6 +22,8 @@ export function HomePage() {
   const [editingSite, setEditingSite] = useState<MonitoredSite | null>(null);
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   const prevSites = usePrevious(sites);
+  // Activate scheduled summary notifications
+  useSummaryNotifications(sites);
   useEffect(() => {
     fetchSites();
     requestNotificationPermission();
