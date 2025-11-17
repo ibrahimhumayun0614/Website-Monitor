@@ -11,6 +11,7 @@ type SitesActions = {
   fetchSites: () => Promise<void>;
   addSite: (url: string) => Promise<void>;
   removeSite: (id: string) => Promise<void>;
+  recheckSite: (id: string) => Promise<void>;
 };
 const useSitesStore = create<SitesState & SitesActions>()(
   immer((set) => ({
@@ -71,6 +72,22 @@ const useSitesStore = create<SitesState & SitesActions>()(
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         console.error('Error removing site:', errorMessage);
         toast.error('Failed to remove site', { description: errorMessage });
+      }
+    },
+    recheckSite: async (id: string) => {
+      try {
+        const response = await fetch(`/api/sites/${id}/recheck`, { method: 'POST' });
+        if (!response.ok) throw new Error('Failed to re-check site.');
+        const result = await response.json();
+        if (result.success) {
+          set({ sites: result.data });
+        } else {
+          throw new Error(result.error || 'An unknown error occurred.');
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        console.error(`Error re-checking site ${id}:`, errorMessage);
+        // We don't show a toast here to avoid spamming the user during auto-refresh
       }
     },
   }))
