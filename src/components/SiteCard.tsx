@@ -1,5 +1,5 @@
 import { MonitoredSite, SiteStatus } from '@shared/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil } from 'lucide-react';
@@ -47,110 +47,156 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       responseTime: h.responseTime,
     }))
     .reverse();
-  return (
-    <Card className="flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative">
-      <CardHeader className="flex-row items-start justify-between gap-4 pb-2">
-        <div className="space-y-1.5 overflow-hidden">
-          <CardTitle className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
-            <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-            <span className="truncate" title={site.name}>{site.name}</span>
-          </CardTitle>
+  const SiteInfo = () => (
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-3">
+        <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-semibold truncate" title={site.name}>{site.name}</p>
           <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:underline flex items-center gap-1.5" title={site.url}>
-            {formattedUrl} <ExternalLink className="h-3 w-3" />
+            <span className="truncate">{formattedUrl}</span> <ExternalLink className="h-3 w-3 flex-shrink-0" />
           </a>
         </div>
-        <AlertDialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(site)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-900/50">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete this site from your monitoring list.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => removeSite(site.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col justify-center py-4 min-h-[140px] relative">
-        <div className="flex items-center justify-between mb-2">
-            <Badge variant="outline" className={cn("text-xs", className)}>
-                <Icon className={cn("h-3 w-3 mr-1.5", site.status === 'CHECKING' && 'animate-spin')} />
-                {label}
-            </Badge>
-            <div className="text-right">
-                {site.status !== 'CHECKING' && site.responseTime !== null ? (
-                    <p className="text-sm"><span className="font-bold text-foreground">{site.responseTime}</span> ms</p>
-                ) : <div className="h-5 w-12" />}
-            </div>
+      </div>
+    </div>
+  );
+  const StatusBadge = () => (
+    <Badge variant="outline" className={cn("text-xs w-full justify-center sm:w-auto", className)}>
+      <Icon className={cn("h-3 w-3 mr-1.5", site.status === 'CHECKING' && 'animate-spin')} />
+      {label}
+    </Badge>
+  );
+  const ResponseTime = () => (
+    <div className="text-center">
+      {site.status !== 'CHECKING' && site.responseTime !== null ? (
+        <p className="text-sm"><span className="font-bold text-foreground">{site.responseTime}</span> ms</p>
+      ) : <div className="h-5 w-12 mx-auto" />}
+    </div>
+  );
+  const PerformanceChart = () => (
+    <div className="relative h-24 lg:h-16 w-full">
+      {site.isRechecking && (
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+          <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-        {site.isRechecking && (
-          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-b-lg">
-            <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
+      )}
+      {site.history && site.history.length > 1 ? (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"} />
+            <XAxis dataKey="time" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={10} tickLine={false} axisLine={false} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: isDark ? 'hsl(var(--background))' : 'hsl(var(--popover))',
+                borderColor: 'hsl(var(--border))',
+                borderRadius: 'var(--radius)',
+                fontSize: '12px',
+                padding: '4px 8px',
+              }}
+              labelStyle={{ color: 'hsl(var(--foreground))' }}
+            />
+            <Line type="monotone" dataKey="responseTime" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="text-center text-muted-foreground text-xs flex flex-col items-center justify-center gap-2 h-full">
+          <LineChartIcon className="h-5 w-5" />
+          <span>Awaiting more data for chart.</span>
+        </div>
+      )}
+    </div>
+  );
+  const Metadata = () => (
+    <div className="text-xs text-muted-foreground space-y-1.5">
+      {site.maintainer && (
+        <div className="flex items-center gap-2 truncate">
+          <User className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Maintained by: <span className="font-medium text-foreground">{site.maintainer}</span></span>
+        </div>
+      )}
+      {site.domainExpiry && (
+        <div className="flex items-center gap-2 truncate">
+          <Calendar className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Expires in {formatDistanceToNow(new Date(site.domainExpiry), { addSuffix: true })}</span>
+        </div>
+      )}
+    </div>
+  );
+  const ActionsMenu = () => (
+    <AlertDialog>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(site)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            <span>Edit</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-900/50">
+              <Trash2 className="mr-2 h-4 w-4" />
+              <span>Delete</span>
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete this site from your monitoring list.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => removeSite(site.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+  return (
+    <Card className="p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 bg-card/80 backdrop-blur-sm">
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex items-center gap-6">
+        <div className="w-1/4"><SiteInfo /></div>
+        <div className="w-[100px]"><StatusBadge /></div>
+        <div className="w-[80px]"><ResponseTime /></div>
+        <div className="flex-1"><PerformanceChart /></div>
+        <div className="w-1/4"><Metadata /></div>
+        <div><ActionsMenu /></div>
+      </div>
+      {/* Mobile Layout */}
+      <div className="lg:hidden flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <SiteInfo />
+          <ActionsMenu />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2 p-3 rounded-md bg-background/50">
+            <p className="text-xs text-muted-foreground font-medium">Status</p>
+            <StatusBadge />
+          </div>
+          <div className="flex flex-col gap-2 p-3 rounded-md bg-background/50">
+            <p className="text-xs text-muted-foreground font-medium">Response Time</p>
+            <ResponseTime />
+          </div>
+        </div>
+        <div className="p-3 rounded-md bg-background/50">
+          <p className="text-xs text-muted-foreground font-medium mb-2">Performance</p>
+          <PerformanceChart />
+        </div>
+        {(site.maintainer || site.domainExpiry) && (
+          <div className="p-3 rounded-md bg-background/50">
+            <Metadata />
           </div>
         )}
-        {site.history && site.history.length > 1 ? (
-          <ResponsiveContainer width="100%" height={100}>
-            <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"} />
-              <XAxis dataKey="time" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: isDark ? 'hsl(var(--background))' : 'hsl(var(--popover))',
-                  borderColor: 'hsl(var(--border))',
-                  borderRadius: 'var(--radius)',
-                }}
-                labelStyle={{ color: 'hsl(var(--foreground))' }}
-              />
-              <Line type="monotone" dataKey="responseTime" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="text-center text-muted-foreground text-sm flex flex-col items-center justify-center gap-2 flex-grow">
-            <LineChartIcon className="h-6 w-6" />
-            <span>Awaiting more data for performance chart.</span>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="text-xs text-muted-foreground pt-4 flex flex-col items-start gap-2">
-        {site.maintainer && (
-            <div className="flex items-center gap-2">
-                <User className="h-3 w-3" />
-                <span>Maintained by: <span className="font-medium text-foreground">{site.maintainer}</span></span>
-            </div>
-        )}
-        {site.domainExpiry && (
-            <div className="flex items-center gap-2">
-                <Calendar className="h-3 w-3" />
-                <span>Expires in {formatDistanceToNow(new Date(site.domainExpiry), { addSuffix: true })} ({format(new Date(site.domainExpiry), 'MMM d, yyyy')})</span>
-            </div>
-        )}
-        <p className="w-full text-right opacity-80">Last checked: {site.lastChecked ? new Date(site.lastChecked).toLocaleString() : 'N/A'}</p>
-      </CardFooter>
+      </div>
     </Card>
   );
 }
