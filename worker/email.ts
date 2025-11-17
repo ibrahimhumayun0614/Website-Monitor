@@ -8,9 +8,9 @@ export async function sendDowntimeAlert(siteName: string, siteUrl: string, toEma
     ],
     from: {
       email: 'alerts@website-monitor.app',
-      name: 'Website Monitor Alerts',
+      name: 'Website Monitor Tool Alerts',
     },
-    subject: `[Alert] Your site "${siteName}" is down!`,
+    subject: `[Website Monitor Tool Alert] Your site "${siteName}" is down!`,
     content: [
       {
         type: 'text/html',
@@ -25,7 +25,7 @@ export async function sendDowntimeAlert(siteName: string, siteUrl: string, toEma
                 <li><strong>Time of Detection:</strong> ${new Date().toUTCString()}</li>
               </ul>
               <p>We will continue to monitor the site and will notify you if its status changes.</p>
-              <p>— The Website Monitor Team</p>
+              <p>— The Website Monitor Tool Team</p>
             </body>
           </html>
         `,
@@ -60,9 +60,9 @@ export async function sendRecoveryAlert(siteName: string, siteUrl: string, toEma
     ],
     from: {
       email: 'alerts@website-monitor.app',
-      name: 'Website Monitor Alerts',
+      name: 'Website Monitor Tool Alerts',
     },
-    subject: `[Recovery] Your site "${siteName}" is back up!`,
+    subject: `[Website Monitor Tool Recovery] Your site "${siteName}" is back up!`,
     content: [
       {
         type: 'text/html',
@@ -77,7 +77,7 @@ export async function sendRecoveryAlert(siteName: string, siteUrl: string, toEma
                 <li><strong>Time of Recovery:</strong> ${new Date().toUTCString()}</li>
               </ul>
               <p>We will continue to monitor the site.</p>
-              <p>— The Website Monitor Team</p>
+              <p>— The Website Monitor Tool Team</p>
             </body>
           </html>
         `,
