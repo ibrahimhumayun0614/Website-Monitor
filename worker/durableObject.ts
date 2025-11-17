@@ -158,7 +158,7 @@ export class GlobalDurableObject extends DurableObject {
         if (updatedSite.notificationEmail) {
             if (previousStatus !== 'DOWN' && updatedSite.status === 'DOWN') {
                 this.ctx.waitUntil(sendDowntimeAlert(updatedSite.name, updatedSite.url, updatedSite.notificationEmail));
-            } else if (previousStatus === 'DOWN' && updatedSite.status === 'UP') {
+            } else if (previousStatus !== 'UP' && updatedSite.status === 'UP') {
                 this.ctx.waitUntil(sendRecoveryAlert(updatedSite.name, updatedSite.url, updatedSite.notificationEmail));
             }
         }
