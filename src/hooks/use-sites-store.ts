@@ -17,7 +17,7 @@ type SitesActions = {
   recheckSite: (id: string) => Promise<void>;
 };
 const useSitesStore = create<SitesState & SitesActions>()(
-  immer((set) => ({
+  immer((set, get) => ({
     sites: [],
     isLoading: true,
     error: null,
@@ -99,6 +99,8 @@ const useSitesStore = create<SitesState & SitesActions>()(
       }
     },
     recheckSite: async (id: string) => {
+      const siteName = get().sites.find(s => s.id === id)?.name || 'site';
+      toast.info(`Initiating check for ${siteName}...`);
       set((state) => {
         const site = state.sites.find((s) => s.id === id);
         if (site) {
