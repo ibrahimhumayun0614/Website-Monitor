@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { format } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -138,41 +138,58 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
             <FormField
               control={form.control}
               name="domainExpiry"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Domain Expiry Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+              render={({ field }) => {
+                const [inputValue, setInputValue] = useState(field.value ? format(field.value, 'yyyy-MM-dd') : '');
+                useEffect(() => {
+                  setInputValue(field.value ? format(field.value, 'yyyy-MM-dd') : '');
+                }, [field.value]);
+                const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value;
+                  setInputValue(value);
+                  const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
+                  if (isValid(parsedDate)) {
+                    field.onChange(parsedDate);
+                  } else if (value === '') {
+                    field.onChange(undefined);
+                  }
+                };
+                return (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Domain Expiry Date</FormLabel>
+                    <div className="relative">
                       <FormControl>
-                        <Button
-                          variant={'outline'}
-                          className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Input
+                          placeholder="YYYY-MM-DD"
+                          value={inputValue}
+                          onChange={handleInputChange}
+                        />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+                      <div className="absolute right-0 top-0 h-full flex items-center pr-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <CalendarIcon className="h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(date) => {
+                                field.onChange(date);
+                                setInputValue(date ? format(date, 'yyyy-MM-dd') : '');
+                              }}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
