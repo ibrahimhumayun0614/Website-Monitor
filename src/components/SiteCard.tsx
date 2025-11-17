@@ -24,21 +24,19 @@ import {
 } from '@/components/ui/alert-dialog';
 import useSitesStore from '@/hooks/use-sites-store';
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip, CartesianGrid } from 'recharts';
-import { useTheme } from '@/hooks/use-theme';
 import { formatDistanceToNow } from 'date-fns';
 interface SiteCardProps {
   site: MonitoredSite;
   onEdit: (site: MonitoredSite) => void;
 }
 const statusConfig: Record<SiteStatus, { label: string; icon: React.ElementType; className: string }> = {
-  UP: { label: 'Up', icon: CheckCircle2, className: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800' },
-  DOWN: { label: 'Down', icon: XCircle, className: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-200 dark:border-red-800' },
-  DEGRADED: { label: 'Degraded', icon: AlertTriangle, className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' },
-  CHECKING: { label: 'Checking...', icon: Loader, className: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700 animate-pulse' },
+  UP: { label: 'Up', icon: CheckCircle2, className: 'bg-green-100 text-green-800 border-green-200' },
+  DOWN: { label: 'Down', icon: XCircle, className: 'bg-red-100 text-red-800 border-red-200' },
+  DEGRADED: { label: 'Degraded', icon: AlertTriangle, className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+  CHECKING: { label: 'Checking...', icon: Loader, className: 'bg-slate-100 text-slate-800 border-slate-200 animate-pulse' },
 };
 export function SiteCard({ site, onEdit }: SiteCardProps) {
   const removeSite = useSitesStore((s) => s.removeSite);
-  const { isDark } = useTheme();
   const { label, icon: Icon, className } = statusConfig[site.status];
   const formattedUrl = site.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const chartData = site.history
@@ -52,8 +50,8 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       <div className="flex items-center gap-3">
         <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold truncate" title={site.name}>{site.name}</p>
-          <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:underline flex items-center gap-1.5" title={site.url}>
+          <p className="text-lg font-semibold truncate" title={site.name}>{site.name}</p>
+          <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-base text-muted-foreground hover:underline flex items-center gap-1.5" title={site.url}>
             <span className="truncate">{formattedUrl}</span> <ExternalLink className="h-3 w-3 flex-shrink-0" />
           </a>
         </div>
@@ -83,11 +81,11 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       {site.history && site.history.length > 1 ? (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"} />
-            <XAxis dataKey="time" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={10} tickLine={false} axisLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={"rgba(0, 0, 0, 0.1)"} />
+            <XAxis dataKey="time" stroke={"#64748b"} fontSize={10} tickLine={false} axisLine={false} />
             <Tooltip
               contentStyle={{
-                backgroundColor: isDark ? 'hsl(var(--background))' : 'hsl(var(--popover))',
+                backgroundColor: 'hsl(var(--popover))',
                 borderColor: 'hsl(var(--border))',
                 borderRadius: 'var(--radius)',
                 fontSize: '12px',
@@ -95,7 +93,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
               }}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
             />
-            <Line type="monotone" dataKey="responseTime" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="responseTime" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} isAnimationActive={site.status === 'UP'} />
           </LineChart>
         </ResponsiveContainer>
       ) : (
@@ -107,7 +105,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
     </div>
   );
   const Metadata = () => (
-    <div className="text-xs text-muted-foreground space-y-1.5">
+    <div className="text-sm text-muted-foreground space-y-1.5">
       {site.maintainer && (
         <div className="flex items-center gap-2 truncate">
           <User className="h-3 w-3 flex-shrink-0" />
@@ -143,7 +141,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-900/50">
+            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50">
               <Trash2 className="mr-2 h-4 w-4" />
               <span>Delete</span>
             </DropdownMenuItem>
