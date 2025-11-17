@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import type { DemoItem, MonitoredSite, SiteStatus, SiteCheck } from '@shared/types';
 import { MOCK_ITEMS } from '@shared/mock-data';
-import { sendDowntimeAlert } from './email';
+import { sendDowntimeAlert, sendRecoveryAlert } from './email';
 const MAX_HISTORY_LENGTH = 24;
 type NewSitePayload = {
     url: string;
@@ -154,9 +154,13 @@ export class GlobalDurableObject extends DurableObject {
             lastChecked: checkResult.timestamp,
             history: [checkResult, ...siteToCheck.history].slice(0, MAX_HISTORY_LENGTH),
         };
-        // Check for status change to DOWN and send notification
-        if (previousStatus !== 'DOWN' && updatedSite.status === 'DOWN' && updatedSite.notificationEmail) {
-            this.ctx.waitUntil(sendDowntimeAlert(updatedSite.name, updatedSite.url, updatedSite.notificationEmail));
+        // Check for status change and send notification
+        if (updatedSite.notificationEmail) {
+            if (previousStatus !== 'DOWN' && updatedSite.status === 'DOWN') {
+                this.ctx.waitUntil(sendDowntimeAlert(updatedSite.name, updatedSite.url, updatedSite.notificationEmail));
+            } else if (previousStatus === 'DOWN' && updatedSite.status === 'UP') {
+                this.ctx.waitUntil(sendRecoveryAlert(updatedSite.name, updatedSite.url, updatedSite.notificationEmail));
+            }
         }
         const updatedSites = [...sites];
         updatedSites[siteIndex] = updatedSite;
