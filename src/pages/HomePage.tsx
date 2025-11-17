@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { usePrevious } from 'react-use';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from '@/components/ui/sonner';
-import { Skeleton } from '@/components/ui/skeleton';
 import { SiteCard } from '@/components/SiteCard';
 import { AddSiteDialog } from '@/components/AddSiteDialog';
 import { EmptyState } from '@/components/EmptyState';
@@ -12,6 +11,7 @@ import { Plus, RefreshCw, Loader } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { requestNotificationPermission, showSiteDownNotification, showSiteUpNotification } from '@/lib/notifications';
 import type { MonitoredSite } from '@shared/types';
+import { SiteCardSkeleton } from '@/components/SiteCardSkeleton';
 const REFRESH_INTERVAL = 60000; // 60 seconds
 export function HomePage() {
   const sites = useSitesStore((s) => s.sites);
@@ -69,7 +69,7 @@ export function HomePage() {
       return (
         <div className="flex flex-col gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            <SiteCardSkeleton key={i} />
           ))}
         </div>
       );

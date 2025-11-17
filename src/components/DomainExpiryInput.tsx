@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
-import { ControllerRenderProps } from 'react-hook-form';
+import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { format, parse, isValid } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { z } from 'zod';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { formSchema } from '@/lib/schemas';
-type FormSchemaType = z.infer<typeof formSchema>;
 interface DomainExpiryInputProps {
-  field: ControllerRenderProps<FormSchemaType, "domainExpiry">;
+  field: ControllerRenderProps<FieldValues, "domainExpiry">;
 }
 export function DomainExpiryInput({ field }: DomainExpiryInputProps) {
   const [inputValue, setInputValue] = useState(field.value ? format(field.value, 'yyyy-MM-dd') : '');
