@@ -9,7 +9,7 @@ type NewSitePayload = {
 };
 type UpdateSitePayload = Partial<NewSitePayload>;
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
-    // Zenith Watch API
+    // Website Monitor Tool API
     app.get('/api/sites', async (c) => {
         const durableObjectStub = c.env.GlobalDurableObject.get(c.env.GlobalDurableObject.idFromName("global"));
         const data = await durableObjectStub.getSites();

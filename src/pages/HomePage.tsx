@@ -66,8 +66,8 @@ export function HomePage() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
             <SiteCardSkeleton key={i} />
           ))}
         </div>
@@ -77,7 +77,7 @@ export function HomePage() {
       return <EmptyState onAddSite={handleAddSiteClick} />;
     }
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <AnimatePresence>
           {sites.map((site, i) => (
             <motion.div
@@ -103,7 +103,7 @@ export function HomePage() {
             <header className="flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12">
               <div className="flex items-center">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                  Website Monitor
+                  Website Monitor Tool
                 </h1>
               </div>
               <div className="flex items-center gap-2 flex-wrap">

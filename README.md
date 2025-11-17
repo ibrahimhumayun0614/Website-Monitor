@@ -1,7 +1,7 @@
-# Website Monitor
+# Website Monitor Tool
 A minimalist, visually stunning web application to monitor website uptime and performance.
 [cloudflarebutton]
-Website Monitor is a visually stunning, minimalist web application designed to monitor the uptime and performance of websites. Built on Cloudflare's serverless infrastructure, it provides a clean, real-time dashboard of all monitored URLs. The core interface consists of a list of cards, where each card represents a monitored site, displaying its current status (Up/Down), response time, and a historical performance chart. Users can seamlessly add, edit, and delete URLs to monitor via a dialog. The application leverages a single Durable Object for persistent storage of the monitored sites, with a Hono-based API backend providing the necessary endpoints.
+Website Monitor Tool is a visually stunning, minimalist web application designed to monitor the uptime and performance of websites. Built on Cloudflare's serverless infrastructure, it provides a clean, real-time dashboard of all monitored URLs. The core interface consists of a list of cards, where each card represents a monitored site, displaying its current status (Up/Down), response time, and a historical performance chart. Users can seamlessly add, edit, and delete URLs to monitor via a dialog. The application leverages a single Durable Object for persistent storage of the monitored sites, with a Hono-based API backend providing the necessary endpoints.
 ## Key Features
 - **Real-Time Monitoring**: Get instant status updates on your websites' uptime and response time with auto-refresh.
 - **Elegant Dashboard**: A clean, responsive, and information-dense list layout to view all your monitored sites.
@@ -33,7 +33,7 @@ Follow these instructions to get the project up and running on your local machin
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd website-monitor
+    cd website-monitor-tool
     ```
 2.  **Install dependencies:**
     This project uses Bun for package management.
