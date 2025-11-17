@@ -66,8 +66,8 @@ export function HomePage() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
             <SiteCardSkeleton key={i} />
           ))}
         </div>
@@ -77,7 +77,7 @@ export function HomePage() {
       return <EmptyState onAddSite={handleAddSiteClick} />;
     }
     return (
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AnimatePresence>
           {sites.map((site, i) => (
             <motion.div
