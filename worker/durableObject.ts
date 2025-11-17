@@ -8,6 +8,7 @@ type NewSitePayload = {
     domainExpiry?: string;
     maintainer?: string;
 };
+type UpdateSitePayload = Partial<NewSitePayload>;
 // **DO NOT MODIFY THE CLASS NAME**
 export class GlobalDurableObject extends DurableObject {
     // Demo methods - kept for template compatibility
@@ -103,6 +104,27 @@ export class GlobalDurableObject extends DurableObject {
             history: [initialCheck],
         };
         const updatedSites = [...sites, newSite];
+        await this.ctx.storage.put("monitored_sites", updatedSites);
+        return updatedSites;
+    }
+    async updateSite(id: string, updates: UpdateSitePayload): Promise<MonitoredSite[]> {
+        const sites = await this.getSites();
+        const siteIndex = sites.findIndex(s => s.id === id);
+        if (siteIndex === -1) {
+            return sites; // Site not found
+        }
+        const originalSite = sites[siteIndex];
+        const updatedSite = { ...originalSite, ...updates };
+        // If URL changed, we should re-check it.
+        if (updates.url && updates.url !== originalSite.url) {
+            const checkResult = await this.checkSite(updates.url);
+            updatedSite.status = checkResult.status;
+            updatedSite.responseTime = checkResult.responseTime;
+            updatedSite.lastChecked = checkResult.timestamp;
+            updatedSite.history = [checkResult]; // Reset history for new URL
+        }
+        const updatedSites = [...sites];
+        updatedSites[siteIndex] = updatedSite;
         await this.ctx.storage.put("monitored_sites", updatedSites);
         return updatedSites;
     }
