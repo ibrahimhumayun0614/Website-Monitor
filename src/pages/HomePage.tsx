@@ -10,7 +10,7 @@ import useSitesStore from '@/hooks/use-sites-store';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, Loader } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { requestNotificationPermission, showSiteDownNotification } from '@/lib/notifications';
+import { requestNotificationPermission, showSiteDownNotification, showSiteUpNotification } from '@/lib/notifications';
 import type { MonitoredSite } from '@shared/types';
 const REFRESH_INTERVAL = 60000; // 60 seconds
 export function HomePage() {
@@ -30,8 +30,12 @@ export function HomePage() {
     if (prevSites && prevSites.length > 0 && sites.length > 0) {
       sites.forEach(currentSite => {
         const previousSite = prevSites.find(s => s.id === currentSite.id);
-        if (previousSite && previousSite.status === 'UP' && currentSite.status === 'DOWN') {
-          showSiteDownNotification(currentSite.name);
+        if (previousSite) {
+          if (previousSite.status === 'UP' && currentSite.status === 'DOWN') {
+            showSiteDownNotification(currentSite.name);
+          } else if (previousSite.status === 'DOWN' && currentSite.status === 'UP') {
+            showSiteUpNotification(currentSite.name);
+          }
         }
       });
     }
@@ -63,20 +67,9 @@ export function HomePage() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex flex-col space-y-3 p-4 border rounded-xl">
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-5 w-3/5" />
-                <Skeleton className="h-8 w-8 rounded-md" />
-              </div>
-              <Skeleton className="h-4 w-1/4" />
-              <Skeleton className="h-[120px] w-full rounded-lg" />
-              <div className="flex justify-between items-center pt-2">
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-1/4" />
-              </div>
-            </div>
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
           ))}
         </div>
       );
@@ -85,16 +78,16 @@ export function HomePage() {
       return <EmptyState onAddSite={handleAddSiteClick} />;
     }
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col gap-4">
         <AnimatePresence>
           {sites.map((site) => (
             <motion.div
               key={site.id}
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
             >
               <SiteCard site={site} onEdit={handleEditSiteClick} />
             </motion.div>
@@ -109,14 +102,14 @@ export function HomePage() {
         <ThemeToggle className="fixed top-4 right-4" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12">
-            <header className="flex items-center justify-between mb-8 md:mb-12">
+            <header className="flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12">
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600" />
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                   Zenith Watch
                 </h1>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {sites.length > 0 && (
                   <Button variant="outline" onClick={handleRefreshAll} disabled={isRefreshingAll}>
                     {isRefreshingAll ? (
@@ -136,9 +129,6 @@ export function HomePage() {
             <main>{renderContent()}</main>
           </div>
         </div>
-        <footer className="py-6 text-center text-sm text-muted-foreground">
-          Built with ❤️ at Cloudflare
-        </footer>
       </div>
       <AddSiteDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} siteToEdit={editingSite} />
       <Toaster richColors closeButton theme="light" />

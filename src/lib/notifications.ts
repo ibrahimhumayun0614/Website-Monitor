@@ -25,3 +25,16 @@ export const showSiteDownNotification = (siteName: string): void => {
     window.focus();
   };
 };
+export const showSiteUpNotification = (siteName: string): void => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    return;
+  }
+  const notification = new Notification('Zenith Watch - Site Up Alert', {
+    body: `Your monitored site "${siteName}" is back up!`,
+    icon: '/favicon.ico',
+    silent: false,
+  });
+  notification.onclick = () => {
+    window.focus();
+  };
+};
