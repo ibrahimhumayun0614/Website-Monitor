@@ -2,6 +2,12 @@ import { DurableObject } from "cloudflare:workers";
 import type { DemoItem, MonitoredSite, SiteStatus, SiteCheck } from '@shared/types';
 import { MOCK_ITEMS } from '@shared/mock-data';
 const MAX_HISTORY_LENGTH = 24;
+type NewSitePayload = {
+    url: string;
+    name: string;
+    domainExpiry?: string;
+    maintainer?: string;
+};
 // **DO NOT MODIFY THE CLASS NAME**
 export class GlobalDurableObject extends DurableObject {
     // Demo methods - kept for template compatibility
@@ -78,16 +84,19 @@ export class GlobalDurableObject extends DurableObject {
             timestamp: new Date().toISOString(),
         };
     }
-    async addSite(url: string): Promise<MonitoredSite[]> {
+    async addSite(payload: NewSitePayload): Promise<MonitoredSite[]> {
         const sites = await this.getSites();
-        if (sites.find(s => s.url === url)) {
+        if (sites.find(s => s.url === payload.url)) {
             // Site already exists, do not add again.
             return sites;
         }
-        const initialCheck = await this.checkSite(url);
+        const initialCheck = await this.checkSite(payload.url);
         const newSite: MonitoredSite = {
             id: crypto.randomUUID(),
-            url,
+            url: payload.url,
+            name: payload.name,
+            domainExpiry: payload.domainExpiry,
+            maintainer: payload.maintainer,
             status: initialCheck.status,
             responseTime: initialCheck.responseTime,
             lastChecked: initialCheck.timestamp,

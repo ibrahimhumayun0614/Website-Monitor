@@ -7,6 +7,9 @@ export interface SiteCheck {
 export interface MonitoredSite {
   id: string;
   url: string;
+  name: string;
+  domainExpiry?: string;
+  maintainer?: string;
   status: SiteStatus;
   responseTime: number | null;
   lastChecked: string | null;
