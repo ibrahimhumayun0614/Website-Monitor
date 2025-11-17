@@ -2,7 +2,7 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -24,6 +24,7 @@ import {
 import useSitesStore from '@/hooks/use-sites-store';
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useTheme } from '@/hooks/use-theme';
+import { format, formatDistanceToNow } from 'date-fns';
 interface SiteCardProps {
   site: MonitoredSite;
 }
@@ -50,14 +51,11 @@ export function SiteCard({ site }: SiteCardProps) {
         <div className="space-y-1.5 overflow-hidden">
           <CardTitle className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
             <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-            <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:underline truncate" title={site.url}>
-              {formattedUrl}
-            </a>
+            <span className="truncate" title={site.name}>{site.name}</span>
           </CardTitle>
-          <Badge variant="outline" className={cn("text-xs", className)}>
-            <Icon className={cn("h-3 w-3 mr-1.5", site.status === 'CHECKING' && 'animate-spin')} />
-            {label}
-          </Badge>
+          <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:underline flex items-center gap-1.5" title={site.url}>
+            {formattedUrl} <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
         <AlertDialog>
           <DropdownMenu>
@@ -91,14 +89,25 @@ export function SiteCard({ site }: SiteCardProps) {
           </AlertDialogContent>
         </AlertDialog>
       </CardHeader>
-      <CardContent className="flex-grow flex items-center justify-center py-4 min-h-[120px] relative">
+      <CardContent className="flex-grow flex flex-col justify-center py-4 min-h-[140px] relative">
+        <div className="flex items-center justify-between mb-2">
+            <Badge variant="outline" className={cn("text-xs", className)}>
+                <Icon className={cn("h-3 w-3 mr-1.5", site.status === 'CHECKING' && 'animate-spin')} />
+                {label}
+            </Badge>
+            <div className="text-right">
+                {site.status !== 'CHECKING' && site.responseTime !== null ? (
+                    <p className="text-sm"><span className="font-bold text-foreground">{site.responseTime}</span> ms</p>
+                ) : <div className="h-5 w-12" />}
+            </div>
+        </div>
         {site.isRechecking && (
           <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-b-lg">
             <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         )}
         {site.history && site.history.length > 1 ? (
-          <ResponsiveContainer width="100%" height={120}>
+          <ResponsiveContainer width="100%" height={100}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"} />
               <XAxis dataKey="time" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={12} tickLine={false} axisLine={false} />
@@ -114,19 +123,26 @@ export function SiteCard({ site }: SiteCardProps) {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
+          <div className="text-center text-muted-foreground text-sm flex flex-col items-center justify-center gap-2 flex-grow">
             <LineChartIcon className="h-6 w-6" />
             <span>Awaiting more data for performance chart.</span>
           </div>
         )}
       </CardContent>
-      <CardFooter className="text-xs text-muted-foreground pt-4 flex justify-between items-center">
-        <p>Last checked: {site.lastChecked ? new Date(site.lastChecked).toLocaleString() : 'N/A'}</p>
-        <div className="text-right">
-          {site.status !== 'CHECKING' && site.responseTime !== null ? (
-            <p><span className="font-bold text-foreground">{site.responseTime}</span> ms</p>
-          ) : null}
-        </div>
+      <CardFooter className="text-xs text-muted-foreground pt-4 flex flex-col items-start gap-2">
+        {site.maintainer && (
+            <div className="flex items-center gap-2">
+                <User className="h-3 w-3" />
+                <span>Maintained by: <span className="font-medium text-foreground">{site.maintainer}</span></span>
+            </div>
+        )}
+        {site.domainExpiry && (
+            <div className="flex items-center gap-2">
+                <Calendar className="h-3 w-3" />
+                <span>Expires in {formatDistanceToNow(new Date(site.domainExpiry), { addSuffix: true })} ({format(new Date(site.domainExpiry), 'MMM d, yyyy')})</span>
+            </div>
+        )}
+        <p className="w-full text-right opacity-80">Last checked: {site.lastChecked ? new Date(site.lastChecked).toLocaleString() : 'N/A'}</p>
       </CardFooter>
     </Card>
   );
