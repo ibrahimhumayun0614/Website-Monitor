@@ -113,7 +113,7 @@ export function HomePage() {
           </div>
         </div>
         <footer className="py-6 text-center text-sm text-muted-foreground">
-          Built with ��️ at Cloudflare
+          Built with ❤️ at Cloudflare
         </footer>
       </div>
       <AddSiteDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
