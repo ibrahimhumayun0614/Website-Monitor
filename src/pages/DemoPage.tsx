@@ -4,14 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import type { DemoItem, ApiResponse } from '@shared/types';
-import { ThemeToggle } from "../components/ThemeToggle";
 import { AppLayout } from '@/components/layout/AppLayout';
-
 export function DemoPage() {
   const [counter, setCounter] = useState<number>(0);
   const [demoItems, setDemoItems] = useState<DemoItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     Promise.all([
     fetch('/api/counter').then((res) => res.json()),
@@ -22,7 +19,6 @@ export function DemoPage() {
       setLoading(false);
     });
   }, []);
-
   const incrementCounter = async () => {
     const res = await fetch('/api/counter/increment', { method: 'POST' });
     const data = (await res.json()) as ApiResponse<number>;
@@ -30,20 +26,15 @@ export function DemoPage() {
       setCounter(data.data);
     }
   };
-
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </main>);
-
   }
-
   return (
     <AppLayout>
       <main className="min-h-screen bg-background p-6">
-        <ThemeToggle />
-        
         <div className="max-w-4xl mx-auto space-y-6">
             <header className="space-y-2">
             <Link to="/">
@@ -55,7 +46,6 @@ export function DemoPage() {
             <h1 className="text-3xl font-bold">Workers Demo</h1>
             <p className="text-muted-foreground">Simple showcase of Durable Object persistence</p>
             </header>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {}
             <Card>
@@ -77,7 +67,6 @@ export function DemoPage() {
                 )}
                 </CardContent>
             </Card>
-
             {}
             <Card>
                 <CardHeader>
@@ -95,7 +84,6 @@ export function DemoPage() {
                   onClick={incrementCounter}
                   className="w-full"
                   variant="outline">
-
                     Increment Counter
                 </Button>
                 </CardContent>
@@ -104,5 +92,4 @@ export function DemoPage() {
         </div>
       </main>
     </AppLayout>);
-
 }
