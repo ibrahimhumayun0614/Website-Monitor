@@ -58,7 +58,7 @@ export class GlobalDurableObject extends DurableObject {
       await this.ctx.storage.put("demo_items", updatedItems);
       return updatedItems;
     }
-    // Website Monitor Methods
+    // Website Monitor Tool Methods
     async getSites(): Promise<MonitoredSite[]> {
         const sites = await this.ctx.storage.get<MonitoredSite[]>("monitored_sites");
         return sites || [];
