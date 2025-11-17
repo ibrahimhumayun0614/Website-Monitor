@@ -2,12 +2,13 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -27,6 +28,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { format, formatDistanceToNow } from 'date-fns';
 interface SiteCardProps {
   site: MonitoredSite;
+  onEdit: (site: MonitoredSite) => void;
 }
 const statusConfig: Record<SiteStatus, { label: string; icon: React.ElementType; className: string }> = {
   UP: { label: 'Up', icon: CheckCircle2, className: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800' },
@@ -34,7 +36,7 @@ const statusConfig: Record<SiteStatus, { label: string; icon: React.ElementType;
   DEGRADED: { label: 'Degraded', icon: AlertTriangle, className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' },
   CHECKING: { label: 'Checking...', icon: Loader, className: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700 animate-pulse' },
 };
-export function SiteCard({ site }: SiteCardProps) {
+export function SiteCard({ site, onEdit }: SiteCardProps) {
   const removeSite = useSitesStore((s) => s.removeSite);
   const { isDark } = useTheme();
   const { label, icon: Icon, className } = statusConfig[site.status];
@@ -65,6 +67,11 @@ export function SiteCard({ site }: SiteCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(site)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-900/50">
                   <Trash2 className="mr-2 h-4 w-4" />
