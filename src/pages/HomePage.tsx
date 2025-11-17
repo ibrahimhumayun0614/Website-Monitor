@@ -101,8 +101,7 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12">
             <header className="flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600" />
+              <div className="flex items-center">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                   Website Monitor
                 </h1>
