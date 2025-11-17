@@ -1,6 +1,6 @@
 # Website Monitor Tool
 A minimalist, visually stunning web application to monitor website uptime and performance.
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ibrahimhumayun0614/Website-Monitor)
 Website Monitor Tool is a visually stunning, minimalist web application designed to monitor the uptime and performance of websites. Built on Cloudflare's serverless infrastructure, it provides a clean, real-time dashboard of all monitored URLs. The core interface consists of a list of cards, where each card represents a monitored site, displaying its current status (Up/Down), response time, and a historical performance chart. Users can seamlessly add, edit, and delete URLs to monitor via a dialog. The application leverages a single Durable Object for persistent storage of the monitored sites, with a Hono-based API backend providing the necessary endpoints.
 ## Key Features
 - **Real-Time Monitoring**: Get instant status updates on your websites' uptime and response time with auto-refresh.
@@ -59,7 +59,7 @@ This project is designed for seamless deployment to Cloudflare's global network.
     bun deploy
     ```
 Alternatively, you can deploy your own version of this project with a single click.
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ibrahimhumayun0614/Website-Monitor)
 ## Project Structure
 -   `src/`: Contains the frontend React application code.
     -   `components/`: Reusable UI components.
