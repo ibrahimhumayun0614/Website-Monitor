@@ -1,0 +1,218 @@
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import useSitesStore from '@/hooks/use-sites-store';
+import type { MonitoredSite } from '@shared/types';
+import { DomainExpiryInput } from './DomainExpiryInput';
+import { formSchema } from '@/lib/schemas';
+interface AddSiteDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  siteToEdit?: MonitoredSite | null;
+}
+export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogProps) {
+  const addSite = useSitesStore((s) => s.addSite);
+  const updateSite = useSitesStore((s) => s.updateSite);
+  const isEditMode = !!siteToEdit;
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      url: '',
+      maintainer: '',
+      notificationEmail: '',
+      httpMethod: 'HEAD',
+      httpHeaders: '',
+      checkFrequency: undefined,
+    },
+  });
+  useEffect(() => {
+    if (siteToEdit && open) {
+      form.reset({
+        name: siteToEdit.name,
+        url: siteToEdit.url,
+        maintainer: siteToEdit.maintainer || '',
+        domainExpiry: siteToEdit.domainExpiry ? new Date(siteToEdit.domainExpiry) : undefined,
+        notificationEmail: siteToEdit.notificationEmail || '',
+        httpMethod: siteToEdit.httpMethod || 'HEAD',
+        httpHeaders: siteToEdit.httpHeaders ? JSON.stringify(siteToEdit.httpHeaders, null, 2) : '',
+        checkFrequency: siteToEdit.checkFrequency || undefined,
+      });
+    } else if (!open) {
+      form.reset({
+        name: '',
+        url: '',
+        maintainer: '',
+        domainExpiry: undefined,
+        notificationEmail: '',
+        httpMethod: 'HEAD',
+        httpHeaders: '',
+        checkFrequency: undefined,
+      });
+    }
+  }, [siteToEdit, open, form]);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const payload = {
+      ...values,
+      domainExpiry: values.domainExpiry ? values.domainExpiry.toISOString() : undefined,
+      notificationEmail: values.notificationEmail || undefined,
+      httpHeaders: values.httpHeaders ? JSON.parse(values.httpHeaders) : undefined,
+      checkFrequency: values.checkFrequency ? Number(values.checkFrequency) : undefined,
+    };
+    if (isEditMode && siteToEdit) {
+      await updateSite(siteToEdit.id, payload);
+    } else {
+      await addSite(payload);
+    }
+    onOpenChange(false);
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>{isEditMode ? 'Edit Site Details' : 'Add a new site to monitor'}</DialogTitle>
+          <DialogDescription>
+            {isEditMode
+              ? `Update the details for ${siteToEdit.name}.`
+              : "Enter the details of the site you want to track. We'll start monitoring it immediately."}
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <Tabs defaultValue="general" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              </TabsList>
+              <TabsContent value="general" className="space-y-4 pt-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website Name</FormLabel>
+                      <FormControl><Input placeholder="My Awesome Project" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website URL</FormLabel>
+                      <FormControl><Input placeholder="https://cloudflare.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maintainer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maintainer (Optional)</FormLabel>
+                      <FormControl><Input placeholder="e.g., John Doe, DevOps Team" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="domainExpiry"
+                  render={({ field }) => <DomainExpiryInput field={field} />}
+                />
+                <FormField
+                  control={form.control}
+                  name="notificationEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notification Email (Optional)</FormLabel>
+                      <FormControl><Input placeholder="alerts@example.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              <TabsContent value="advanced" className="space-y-4 pt-4">
+                <FormField
+                  control={form.control}
+                  name="checkFrequency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Check Frequency (seconds)</FormLabel>
+                      <FormControl><Input type="number" placeholder="60 (default)" {...field} onChange={event => field.onChange(event.target.value === '' ? '' : +event.target.value)} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="httpMethod"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>HTTP Method</FormLabel>
+                      <FormControl>
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value || 'HEAD'} className="flex items-center space-x-4">
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl><RadioGroupItem value="HEAD" /></FormControl>
+                            <FormLabel className="font-normal">HEAD</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl><RadioGroupItem value="GET" /></FormControl>
+                            <FormLabel className="font-normal">GET</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="httpHeaders"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Custom Headers (JSON)</FormLabel>
+                      <FormControl><Textarea placeholder='{ "Authorization": "Bearer your_token" }' className="font-mono h-24" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
+            <DialogFooter className="pt-6">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (isEditMode ? 'Saving...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Add Site')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
