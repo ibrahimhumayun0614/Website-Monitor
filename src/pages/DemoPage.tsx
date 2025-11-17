@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import type { DemoItem, ApiResponse } from '@shared/types';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeToggle } from "../components/ThemeToggle";
 import { AppLayout } from '@/components/layout/AppLayout';
 
 export function DemoPage() {
@@ -14,9 +14,9 @@ export function DemoPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/counter').then(res => res.json()),
-      fetch('/api/demo').then(res => res.json())
-    ]).then(([counterData, itemsData]: [ApiResponse<number>, ApiResponse<DemoItem[]>]) => {
+    fetch('/api/counter').then((res) => res.json()),
+    fetch('/api/demo').then((res) => res.json())]
+    ).then(([counterData, itemsData]: [ApiResponse<number>, ApiResponse<DemoItem[]>]) => {
       if (counterData.success) setCounter(counterData.data || 0);
       if (itemsData.success) setDemoItems(itemsData.data || []);
       setLoading(false);
@@ -25,7 +25,7 @@ export function DemoPage() {
 
   const incrementCounter = async () => {
     const res = await fetch('/api/counter/increment', { method: 'POST' });
-    const data = await res.json() as ApiResponse<number>;
+    const data = (await res.json()) as ApiResponse<number>;
     if (data.success && data.data !== undefined) {
       setCounter(data.data);
     }
@@ -35,8 +35,8 @@ export function DemoPage() {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </main>
-    );
+      </main>);
+
   }
 
   return (
@@ -57,7 +57,7 @@ export function DemoPage() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Durable Object Storage Demo */}
+            {}
             <Card>
                 <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -69,16 +69,16 @@ export function DemoPage() {
                 <p className="text-sm text-muted-foreground">
                     Persistent data stored in Durable Object:
                 </p>
-                {demoItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center p-2 border rounded">
+                {demoItems.map((item) =>
+                <div key={item.id} className="flex justify-between items-center p-2 border rounded">
                     <span className="font-medium">{item.name}</span>
                     <span className="text-muted-foreground">Value: {item.value}</span>
                     </div>
-                ))}
+                )}
                 </CardContent>
             </Card>
 
-            {/* Counter Demo */}
+            {}
             <Card>
                 <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -91,11 +91,11 @@ export function DemoPage() {
                     <p className="text-4xl font-bold">{counter}</p>
                     <p className="text-sm text-muted-foreground">Current Counter Value</p>
                 </div>
-                <Button 
-                    onClick={incrementCounter}
-                    className="w-full"
-                    variant="outline"
-                >
+                <Button
+                  onClick={incrementCounter}
+                  className="w-full"
+                  variant="outline">
+
                     Increment Counter
                 </Button>
                 </CardContent>
@@ -103,6 +103,6 @@ export function DemoPage() {
             </div>
         </div>
       </main>
-    </AppLayout>
-  );
+    </AppLayout>);
+
 }
