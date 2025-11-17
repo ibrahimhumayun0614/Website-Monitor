@@ -10,6 +10,7 @@ export interface MonitoredSite {
   name: string;
   domainExpiry?: string;
   maintainer?: string;
+  notificationEmail?: string;
   status: SiteStatus;
   responseTime: number | null;
   lastChecked: string | null;
