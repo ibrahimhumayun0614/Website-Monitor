@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { formSchema } from './AddSiteDialog';
+import { formSchema } from '@/lib/schemas';
 type FormSchemaType = z.infer<typeof formSchema>;
 interface DomainExpiryInputProps {
   field: ControllerRenderProps<FormSchemaType, "domainExpiry">;
