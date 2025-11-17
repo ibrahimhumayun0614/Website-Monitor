@@ -13,6 +13,7 @@ export interface MonitoredSite {
   notificationEmail?: string;
   httpMethod?: 'HEAD' | 'GET';
   httpHeaders?: Record<string, string>;
+  checkFrequency?: number;
   status: SiteStatus;
   responseTime: number | null;
   lastChecked: string | null;

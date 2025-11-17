@@ -2,7 +2,7 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail, RefreshCw, Settings2, FileJson2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail, RefreshCw, Settings2, FileJson2, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -116,7 +116,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       {site.domainExpiry && (
         <div className="flex items-center gap-2 truncate">
           <Calendar className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">Expires in {formatDistanceToNow(new Date(site.domainExpiry), { addSuffix: true })}</span>
+          <span className="truncate">Expires {formatDistanceToNow(new Date(site.domainExpiry), { addSuffix: true })}</span>
         </div>
       )}
        {site.lastChecked && (
@@ -129,6 +129,12 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
         <div className="flex items-center gap-2 truncate">
           <Mail className="h-3 w-3 flex-shrink-0" />
           <span className="truncate">Alerts to: <span className="font-medium text-foreground">{site.notificationEmail}</span></span>
+        </div>
+      )}
+      {site.checkFrequency && site.checkFrequency !== 60 && (
+        <div className="flex items-center gap-2 truncate">
+          <Timer className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Checks every <span className="font-medium text-foreground">{site.checkFrequency}s</span></span>
         </div>
       )}
       {site.httpMethod && site.httpMethod !== 'HEAD' && (
@@ -189,7 +195,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       </AlertDialogContent>
     </AlertDialog>
   );
-  const hasMetadata = site.maintainer || site.domainExpiry || site.notificationEmail || site.lastChecked || (site.httpMethod && site.httpMethod !== 'HEAD') || (site.httpHeaders && Object.keys(site.httpHeaders).length > 0);
+  const hasMetadata = site.maintainer || site.domainExpiry || site.notificationEmail || site.lastChecked || (site.checkFrequency && site.checkFrequency !== 60) || (site.httpMethod && site.httpMethod !== 'HEAD') || (site.httpHeaders && Object.keys(site.httpHeaders).length > 0);
   return (
     <Card className="p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 bg-card/80 backdrop-blur-sm flex flex-col gap-4 h-full">
       <div className="flex items-start justify-between gap-4">

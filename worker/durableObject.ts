@@ -11,6 +11,7 @@ type NewSitePayload = {
     notificationEmail?: string;
     httpMethod?: 'HEAD' | 'GET';
     httpHeaders?: Record<string, string>;
+    checkFrequency?: number;
 };
 type UpdateSitePayload = Partial<NewSitePayload>;
 // **DO NOT MODIFY THE CLASS NAME**

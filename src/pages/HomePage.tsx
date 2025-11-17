@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { usePrevious } from 'react-use';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from '@/components/ui/sonner';
@@ -12,7 +12,7 @@ import { requestNotificationPermission, showSiteDownNotification, showSiteUpNoti
 import type { MonitoredSite } from '@shared/types';
 import { SiteCardSkeleton } from '@/components/SiteCardSkeleton';
 import { useSummaryNotifications } from '@/hooks/use-summary-notifications';
-const REFRESH_INTERVAL = 60000; // 60 seconds
+const DEFAULT_REFRESH_INTERVAL = 60000; // 60 seconds
 export function HomePage() {
   const sites = useSitesStore((s) => s.sites);
   const isLoading = useSitesStore((s) => s.isLoading);
@@ -22,6 +22,7 @@ export function HomePage() {
   const [editingSite, setEditingSite] = useState<MonitoredSite | null>(null);
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   const prevSites = usePrevious(sites);
+  const timers = useRef<Map<string, NodeJS.Timeout>>(new Map());
   // Activate scheduled summary notifications
   useSummaryNotifications(sites);
   useEffect(() => {
@@ -44,14 +45,21 @@ export function HomePage() {
   }, [sites, prevSites]);
   const stableRecheckSite = useCallback(recheckSite, [recheckSite]);
   useEffect(() => {
-    if (sites.length > 0) {
-      const interval = setInterval(() => {
-        sites.forEach(site => {
-          stableRecheckSite(site.id);
-        });
-      }, REFRESH_INTERVAL);
-      return () => clearInterval(interval);
-    }
+    // Clear all existing timers
+    timers.current.forEach(clearTimeout);
+    timers.current.clear();
+    // Set up new timers for each site
+    sites.forEach(site => {
+      const interval = (site.checkFrequency ? site.checkFrequency * 1000 : DEFAULT_REFRESH_INTERVAL);
+      const timer = setInterval(() => {
+        stableRecheckSite(site.id);
+      }, interval);
+      timers.current.set(site.id, timer);
+    });
+    // Cleanup function to clear all timers on component unmount or when sites change
+    return () => {
+      timers.current.forEach(clearTimeout);
+    };
   }, [sites, stableRecheckSite]);
   const handleRefreshAll = async () => {
     setIsRefreshingAll(true);
