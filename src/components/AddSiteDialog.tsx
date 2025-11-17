@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,6 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -20,86 +21,42 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Plus } from 'lucide-react';
 import useSitesStore from '@/hooks/use-sites-store';
-import type { MonitoredSite } from '@shared/types';
-import { DomainExpiryInput } from './DomainExpiryInput';
-import { formSchema } from '@/lib/schemas';
-interface AddSiteDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  siteToEdit?: MonitoredSite | null;
-}
-export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogProps) {
+const formSchema = z.object({
+  url: z.string().url({ message: 'Please enter a valid URL (e.g., https://example.com)' }),
+});
+export function AddSiteDialog() {
+  const [open, setOpen] = useState(false);
   const addSite = useSitesStore((s) => s.addSite);
-  const updateSite = useSitesStore((s) => s.updateSite);
-  const isEditMode = !!siteToEdit;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
       url: '',
-      maintainer: '',
-      notificationEmail: '',
     },
   });
-  useEffect(() => {
-    if (siteToEdit && open) {
-      form.reset({
-        name: siteToEdit.name,
-        url: siteToEdit.url,
-        maintainer: siteToEdit.maintainer || '',
-        domainExpiry: siteToEdit.domainExpiry ? new Date(siteToEdit.domainExpiry) : undefined,
-        notificationEmail: siteToEdit.notificationEmail || '',
-      });
-    } else if (!open) {
-      form.reset({
-        name: '',
-        url: '',
-        maintainer: '',
-        domainExpiry: undefined,
-        notificationEmail: '',
-      });
-    }
-  }, [siteToEdit, open, form]);
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const payload = {
-      ...values,
-      domainExpiry: values.domainExpiry ? values.domainExpiry.toISOString() : undefined,
-      notificationEmail: values.notificationEmail || undefined,
-    };
-    if (isEditMode && siteToEdit) {
-      await updateSite(siteToEdit.id, payload);
-    } else {
-      await addSite(payload);
-    }
-    onOpenChange(false);
+    await addSite(values.url);
+    form.reset();
+    setOpen(false);
   }
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Site
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Site Details' : 'Add a new site to monitor'}</DialogTitle>
+          <DialogTitle>Add a new site to monitor</DialogTitle>
           <DialogDescription>
-            {isEditMode
-              ? `Update the details for ${siteToEdit.name}.`
-              : "Enter the details of the site you want to track. We'll start monitoring it immediately."}
+            Enter the full URL of the site you want to track. We'll start monitoring it immediately.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="My Awesome Project" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
               name="url"
@@ -113,43 +70,9 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="maintainer"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Who is Maintaining</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., John Doe, DevOps Team" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="domainExpiry"
-              render={({ field }) => <DomainExpiryInput field={field} />}
-            />
-            <FormField
-              control={form.control}
-              name="notificationEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notification Email (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="alerts@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
+            <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? (isEditMode ? 'Saving...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Add Site')}
+                {form.formState.isSubmitting ? 'Adding...' : 'Add Site'}
               </Button>
             </DialogFooter>
           </form>
