@@ -2,7 +2,7 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail, RefreshCw, Settings2, FileJson2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -131,6 +131,18 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
           <span className="truncate">Alerts to: <span className="font-medium text-foreground">{site.notificationEmail}</span></span>
         </div>
       )}
+      {site.httpMethod && site.httpMethod !== 'HEAD' && (
+        <div className="flex items-center gap-2 truncate">
+          <Settings2 className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Method: <span className="font-medium text-foreground">{site.httpMethod}</span></span>
+        </div>
+      )}
+      {site.httpHeaders && Object.keys(site.httpHeaders).length > 0 && (
+        <div className="flex items-center gap-2 truncate">
+          <FileJson2 className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Using custom headers</span>
+        </div>
+      )}
     </div>
   );
   const ActionsMenu = () => (
@@ -177,6 +189,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       </AlertDialogContent>
     </AlertDialog>
   );
+  const hasMetadata = site.maintainer || site.domainExpiry || site.notificationEmail || site.lastChecked || (site.httpMethod && site.httpMethod !== 'HEAD') || (site.httpHeaders && Object.keys(site.httpHeaders).length > 0);
   return (
     <Card className="p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 bg-card/80 backdrop-blur-sm flex flex-col gap-4 h-full">
       <div className="flex items-start justify-between gap-4">
@@ -197,7 +210,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
         <p className="text-xs text-muted-foreground font-medium mb-2">Performance</p>
         <PerformanceChart />
       </div>
-      {(site.maintainer || site.domainExpiry || site.notificationEmail || site.lastChecked) && (
+      {hasMetadata && (
         <div className="p-3 rounded-md bg-background/50">
           <Metadata />
         </div>

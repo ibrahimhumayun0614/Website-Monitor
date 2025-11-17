@@ -5,4 +5,19 @@ export const formSchema = z.object({
   maintainer: z.string().optional(),
   domainExpiry: z.date().optional(),
   notificationEmail: z.string().email({ message: "Please enter a valid email address." }).optional().or(z.literal('')),
+  httpMethod: z.enum(['HEAD', 'GET']).optional(),
+  httpHeaders: z.string().optional(),
+}).refine(data => {
+    if (!data.httpHeaders) {
+        return true; // It's optional, so empty is fine
+    }
+    try {
+        const parsed = JSON.parse(data.httpHeaders);
+        return typeof parsed === 'object' && !Array.isArray(parsed) && parsed !== null;
+    } catch (e) {
+        return false;
+    }
+}, {
+    message: "Custom headers must be a valid JSON object.",
+    path: ["httpHeaders"],
 });
