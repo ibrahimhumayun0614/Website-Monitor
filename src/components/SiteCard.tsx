@@ -73,7 +73,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
     </div>
   );
   const PerformanceChart = () => (
-    <div className="relative h-24 lg:h-16 w-full">
+    <div className="relative h-24 w-full">
       {site.isRechecking && (
         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
           <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -178,47 +178,30 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
     </AlertDialog>
   );
   return (
-    <Card className="p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 bg-card/80 backdrop-blur-sm">
-      {/* Desktop Layout */}
-      <div className="hidden lg:flex items-center gap-6">
-        <div className="w-1/4"><SiteInfo /></div>
-        <div className="w-[100px]"><StatusBadge /></div>
-        <div className="w-[80px]"><ResponseTime /></div>
-        <div className="flex-1"><PerformanceChart /></div>
-        <div className="w-1/4"><Metadata /></div>
-        <div><ActionsMenu /></div>
+    <Card className="p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 bg-card/80 backdrop-blur-sm flex flex-col gap-4 h-full">
+      <div className="flex items-start justify-between gap-4">
+        <SiteInfo />
+        <ActionsMenu />
       </div>
-      {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <SiteInfo />
-          <ActionsMenu />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-2 p-3 rounded-md bg-background/50">
+          <p className="text-xs text-muted-foreground font-medium">Status</p>
+          <StatusBadge />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2 p-3 rounded-md bg-background/50">
-            <p className="text-xs text-muted-foreground font-medium">Status</p>
-            <StatusBadge />
-          </div>
-          <div className="flex flex-col gap-2 p-3 rounded-md bg-background/50">
-            <p className="text-xs text-muted-foreground font-medium">Response Time</p>
-            <ResponseTime />
-          </div>
+        <div className="flex flex-col gap-2 p-3 rounded-md bg-background/50">
+          <p className="text-xs text-muted-foreground font-medium">Response Time</p>
+          <ResponseTime />
         </div>
+      </div>
+      <div className="p-3 rounded-md bg-background/50 flex-1">
+        <p className="text-xs text-muted-foreground font-medium mb-2">Performance</p>
+        <PerformanceChart />
+      </div>
+      {(site.maintainer || site.domainExpiry || site.notificationEmail || site.lastChecked) && (
         <div className="p-3 rounded-md bg-background/50">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Performance</p>
-          <PerformanceChart />
+          <Metadata />
         </div>
-        {(site.maintainer || site.domainExpiry || site.notificationEmail) && (
-          <div className="p-3 rounded-md bg-background/50">
-            <Metadata />
-          </div>
-        )}
-        {site.lastChecked && (
-          <div className="text-right text-xs text-muted-foreground pt-2">
-            Last checked: {new Date(site.lastChecked).toLocaleString()}
-          </div>
-        )}
-      </div>
+      )}
     </Card>
   );
 }
