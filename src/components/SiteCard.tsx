@@ -152,48 +152,67 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
     </div>
   );
   const ActionsMenu = () => (
-    <AlertDialog>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onEdit(site)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            <span>Edit</span>
-          </DropdownMenuItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onEdit(site)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          <span>Edit</span>
+        </DropdownMenuItem>
+        
+        <AlertDialog>
           <AlertDialogTrigger asChild>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <RefreshCw className="mr-2 h-4 w-4" />
               <span>Re-check</span>
             </DropdownMenuItem>
           </AlertDialogTrigger>
-          <DropdownMenuSeparator />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Do you want to manually trigger a new status check for "{site.name}"?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => recheckSite(site.id)}>
+                Yes, Re-check
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <DropdownMenuSeparator />
+
+        <AlertDialog>
           <AlertDialogTrigger asChild>
             <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50" onSelect={(e) => e.preventDefault()}>
               <Trash2 className="mr-2 h-4 w-4" />
               <span>Delete</span>
             </DropdownMenuItem>
           </AlertDialogTrigger>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Do you want to manually trigger a new status check for "{site.name}"?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => recheckSite(site.id)}>
-            Yes, Re-check
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the monitoring for "{site.name}".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => removeSite(site.id)}>
+                Yes, Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
   const hasMetadata = site.maintainer || site.domainExpiry || site.notificationEmail || site.lastChecked || (site.checkFrequency && site.checkFrequency !== 60) || (site.httpMethod && site.httpMethod !== 'HEAD') || (site.httpHeaders && Object.keys(site.httpHeaders).length > 0);
   return (
