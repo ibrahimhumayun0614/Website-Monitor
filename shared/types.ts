@@ -11,6 +11,7 @@ export interface MonitoredSite {
   responseTime: number | null;
   lastChecked: string | null;
   history: SiteCheck[];
+  isRechecking?: boolean;
 }
 export interface DemoItem {
   id: string;

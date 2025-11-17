@@ -75,6 +75,12 @@ const useSitesStore = create<SitesState & SitesActions>()(
       }
     },
     recheckSite: async (id: string) => {
+      set((state) => {
+        const site = state.sites.find((s) => s.id === id);
+        if (site) {
+          site.isRechecking = true;
+        }
+      });
       try {
         const response = await fetch(`/api/sites/${id}/recheck`, { method: 'POST' });
         if (!response.ok) throw new Error('Failed to re-check site.');
@@ -87,7 +93,12 @@ const useSitesStore = create<SitesState & SitesActions>()(
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         console.error(`Error re-checking site ${id}:`, errorMessage);
-        // We don't show a toast here to avoid spamming the user during auto-refresh
+        set((state) => {
+          const site = state.sites.find((s) => s.id === id);
+          if (site) {
+            site.isRechecking = false;
+          }
+        });
       }
     },
   }))
