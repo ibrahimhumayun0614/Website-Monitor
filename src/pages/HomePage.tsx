@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { usePrevious } from 'react-use';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from '@/components/ui/sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,17 +10,32 @@ import useSitesStore from '@/hooks/use-sites-store';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, Loader } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { requestNotificationPermission, showSiteDownNotification } from '@/lib/notifications';
+import type { MonitoredSite } from '@shared/types';
 const REFRESH_INTERVAL = 60000; // 60 seconds
 export function HomePage() {
   const sites = useSitesStore((s) => s.sites);
   const isLoading = useSitesStore((s) => s.isLoading);
   const fetchSites = useSitesStore((s) => s.fetchSites);
   const recheckSite = useSitesStore((s) => s.recheckSite);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSite, setEditingSite] = useState<MonitoredSite | null>(null);
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
+  const prevSites = usePrevious(sites);
   useEffect(() => {
     fetchSites();
+    requestNotificationPermission();
   }, [fetchSites]);
+  useEffect(() => {
+    if (prevSites && prevSites.length > 0 && sites.length > 0) {
+      sites.forEach(currentSite => {
+        const previousSite = prevSites.find(s => s.id === currentSite.id);
+        if (previousSite && previousSite.status === 'UP' && currentSite.status === 'DOWN') {
+          showSiteDownNotification(currentSite.name);
+        }
+      });
+    }
+  }, [sites, prevSites]);
   const stableRecheckSite = useCallback(recheckSite, [recheckSite]);
   useEffect(() => {
     if (sites.length > 0) {
@@ -35,6 +51,14 @@ export function HomePage() {
     setIsRefreshingAll(true);
     await Promise.all(sites.map(site => recheckSite(site.id)));
     setIsRefreshingAll(false);
+  };
+  const handleAddSiteClick = () => {
+    setEditingSite(null);
+    setIsDialogOpen(true);
+  };
+  const handleEditSiteClick = (site: MonitoredSite) => {
+    setEditingSite(site);
+    setIsDialogOpen(true);
   };
   const renderContent = () => {
     if (isLoading) {
@@ -58,7 +82,7 @@ export function HomePage() {
       );
     }
     if (sites.length === 0) {
-      return <EmptyState onAddSite={() => setIsAddDialogOpen(true)} />;
+      return <EmptyState onAddSite={handleAddSiteClick} />;
     }
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -72,7 +96,7 @@ export function HomePage() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.2 }}
             >
-              <SiteCard site={site} />
+              <SiteCard site={site} onEdit={handleEditSiteClick} />
             </motion.div>
           ))}
         </AnimatePresence>
@@ -103,7 +127,7 @@ export function HomePage() {
                     Refresh All
                   </Button>
                 )}
-                <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Button onClick={handleAddSiteClick}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Site
                 </Button>
@@ -116,7 +140,7 @@ export function HomePage() {
           Built with ❤️ at Cloudflare
         </footer>
       </div>
-      <AddSiteDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <AddSiteDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} siteToEdit={editingSite} />
       <Toaster richColors closeButton theme="light" />
     </>
   );

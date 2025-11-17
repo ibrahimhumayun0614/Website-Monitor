@@ -7,6 +7,7 @@ type NewSitePayload = {
     domainExpiry?: string;
     maintainer?: string;
 };
+type UpdateSitePayload = Partial<NewSitePayload>;
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
     // Zenith Watch API
     app.get('/api/sites', async (c) => {
@@ -22,6 +23,23 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
             }
             const durableObjectStub = c.env.GlobalDurableObject.get(c.env.GlobalDurableObject.idFromName("global"));
             const data = await durableObjectStub.addSite(body);
+            return c.json({ success: true, data } satisfies ApiResponse<MonitoredSite[]>);
+        } catch (e) {
+            return c.json({ success: false, error: 'Invalid request body' }, 400);
+        }
+    });
+    app.put('/api/sites/:id', async (c) => {
+        const id = c.req.param('id');
+        if (!id) {
+            return c.json({ success: false, error: 'ID is required' }, 400);
+        }
+        try {
+            const body = await c.req.json<UpdateSitePayload>();
+            if (!body.url || !body.name) {
+                return c.json({ success: false, error: 'URL and Name are required' }, 400);
+            }
+            const durableObjectStub = c.env.GlobalDurableObject.get(c.env.GlobalDurableObject.idFromName("global"));
+            const data = await durableObjectStub.updateSite(id, body);
             return c.json({ success: true, data } satisfies ApiResponse<MonitoredSite[]>);
         } catch (e) {
             return c.json({ success: false, error: 'Invalid request body' }, 400);
