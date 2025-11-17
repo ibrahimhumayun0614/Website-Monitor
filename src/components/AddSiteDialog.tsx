@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import useSitesStore from '@/hooks/use-sites-store';
 import type { MonitoredSite } from '@shared/types';
 import { DomainExpiryInput } from './DomainExpiryInput';
-const formSchema = z.object({
+export const formSchema = z.object({
   name: z.string().min(1, { message: 'Website name is required.' }),
   url: z.string().url({ message: 'Please enter a valid URL (e.g., https://example.com)' }),
   maintainer: z.string().optional(),

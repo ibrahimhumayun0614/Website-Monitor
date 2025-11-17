@@ -8,7 +8,6 @@ import { EmptyState } from '@/components/EmptyState';
 import useSitesStore from '@/hooks/use-sites-store';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, Loader } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { requestNotificationPermission, showSiteDownNotification, showSiteUpNotification } from '@/lib/notifications';
 import type { MonitoredSite } from '@shared/types';
 import { SiteCardSkeleton } from '@/components/SiteCardSkeleton';
@@ -98,14 +97,13 @@ export function HomePage() {
   };
   return (
     <>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-foreground">
-        <ThemeToggle className="fixed top-4 right-4" />
+      <div className="min-h-screen bg-slate-50 text-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12">
             <header className="flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12">
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600" />
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                   Zenith Watch
                 </h1>
               </div>
