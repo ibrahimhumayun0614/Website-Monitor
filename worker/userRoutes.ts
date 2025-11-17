@@ -30,4 +30,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         const data = await durableObjectStub.deleteSite(id);
         return c.json({ success: true, data } satisfies ApiResponse<MonitoredSite[]>);
     });
+    app.post('/api/sites/:id/recheck', async (c) => {
+        const id = c.req.param('id');
+        if (!id) {
+            return c.json({ success: false, error: 'ID is required' }, 400);
+        }
+        const durableObjectStub = c.env.GlobalDurableObject.get(c.env.GlobalDurableObject.idFromName("global"));
+        const data = await durableObjectStub.recheckSite(id);
+        return c.json({ success: true, data } satisfies ApiResponse<MonitoredSite[]>);
+    });
 }
