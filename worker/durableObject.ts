@@ -1,12 +1,14 @@
 import { DurableObject } from "cloudflare:workers";
 import type { DemoItem, MonitoredSite, SiteStatus, SiteCheck } from '@shared/types';
 import { MOCK_ITEMS } from '@shared/mock-data';
+import { sendDowntimeAlert } from './email';
 const MAX_HISTORY_LENGTH = 24;
 type NewSitePayload = {
     url: string;
     name: string;
     domainExpiry?: string;
     maintainer?: string;
+    notificationEmail?: string;
 };
 type UpdateSitePayload = Partial<NewSitePayload>;
 // **DO NOT MODIFY THE CLASS NAME**
@@ -98,6 +100,7 @@ export class GlobalDurableObject extends DurableObject {
             name: payload.name,
             domainExpiry: payload.domainExpiry,
             maintainer: payload.maintainer,
+            notificationEmail: payload.notificationEmail,
             status: initialCheck.status,
             responseTime: initialCheck.responseTime,
             lastChecked: initialCheck.timestamp,
@@ -142,6 +145,7 @@ export class GlobalDurableObject extends DurableObject {
             return sites;
         }
         const siteToCheck = sites[siteIndex];
+        const previousStatus = siteToCheck.status;
         const checkResult = await this.checkSite(siteToCheck.url);
         const updatedSite: MonitoredSite = {
             ...siteToCheck,
@@ -150,6 +154,10 @@ export class GlobalDurableObject extends DurableObject {
             lastChecked: checkResult.timestamp,
             history: [checkResult, ...siteToCheck.history].slice(0, MAX_HISTORY_LENGTH),
         };
+        // Check for status change to DOWN and send notification
+        if (previousStatus !== 'DOWN' && updatedSite.status === 'DOWN' && updatedSite.notificationEmail) {
+            this.ctx.waitUntil(sendDowntimeAlert(updatedSite.name, updatedSite.url, updatedSite.notificationEmail));
+        }
         const updatedSites = [...sites];
         updatedSites[siteIndex] = updatedSite;
         await this.ctx.storage.put("monitored_sites", updatedSites);

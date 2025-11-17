@@ -4,4 +4,5 @@ export const formSchema = z.object({
   url: z.string().url({ message: 'Please enter a valid URL (e.g., https://example.com)' }),
   maintainer: z.string().optional(),
   domainExpiry: z.date().optional(),
+  notificationEmail: z.string().email({ message: "Please enter a valid email address." }).optional().or(z.literal('')),
 });
