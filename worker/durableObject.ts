@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
-import type { DemoItem, MonitoredSite, SiteStatus } from '@shared/types';
+import type { DemoItem, MonitoredSite, SiteStatus, SiteCheck } from '@shared/types';
 import { MOCK_ITEMS } from '@shared/mock-data';
+const MAX_HISTORY_LENGTH = 24;
 // **DO NOT MODIFY THE CLASS NAME**
 export class GlobalDurableObject extends DurableObject {
     // Demo methods - kept for template compatibility
@@ -53,12 +54,12 @@ export class GlobalDurableObject extends DurableObject {
         const sites = await this.ctx.storage.get<MonitoredSite[]>("monitored_sites");
         return sites || [];
     }
-    async checkSite(site: MonitoredSite): Promise<MonitoredSite> {
+    async checkSite(url: string): Promise<SiteCheck> {
         const startTime = Date.now();
         let status: SiteStatus = 'DOWN';
         let responseTime: number | null = null;
         try {
-            const response = await fetch(site.url, { method: 'HEAD', redirect: 'follow' });
+            const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
             responseTime = Date.now() - startTime;
             if (response.ok) {
                 status = 'UP';
@@ -68,29 +69,30 @@ export class GlobalDurableObject extends DurableObject {
                 status = 'DOWN';
             }
         } catch (error) {
-            console.error(`Error checking ${site.url}:`, error);
+            console.error(`Error checking ${url}:`, error);
             status = 'DOWN';
         }
         return {
-            ...site,
             status,
             responseTime,
-            lastChecked: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
         };
     }
     async addSite(url: string): Promise<MonitoredSite[]> {
         const sites = await this.getSites();
         if (sites.find(s => s.url === url)) {
+            // Site already exists, do not add again.
             return sites;
         }
-        let newSite: MonitoredSite = {
+        const initialCheck = await this.checkSite(url);
+        const newSite: MonitoredSite = {
             id: crypto.randomUUID(),
             url,
-            status: 'CHECKING',
-            responseTime: null,
-            lastChecked: null,
+            status: initialCheck.status,
+            responseTime: initialCheck.responseTime,
+            lastChecked: initialCheck.timestamp,
+            history: [initialCheck],
         };
-        newSite = await this.checkSite(newSite);
         const updatedSites = [...sites, newSite];
         await this.ctx.storage.put("monitored_sites", updatedSites);
         return updatedSites;
@@ -98,6 +100,27 @@ export class GlobalDurableObject extends DurableObject {
     async deleteSite(id: string): Promise<MonitoredSite[]> {
         const sites = await this.getSites();
         const updatedSites = sites.filter(site => site.id !== id);
+        await this.ctx.storage.put("monitored_sites", updatedSites);
+        return updatedSites;
+    }
+    async recheckSite(id: string): Promise<MonitoredSite[]> {
+        const sites = await this.getSites();
+        const siteIndex = sites.findIndex(s => s.id === id);
+        if (siteIndex === -1) {
+            // Site not found, maybe it was deleted.
+            return sites;
+        }
+        const siteToCheck = sites[siteIndex];
+        const checkResult = await this.checkSite(siteToCheck.url);
+        const updatedSite: MonitoredSite = {
+            ...siteToCheck,
+            status: checkResult.status,
+            responseTime: checkResult.responseTime,
+            lastChecked: checkResult.timestamp,
+            history: [checkResult, ...siteToCheck.history].slice(0, MAX_HISTORY_LENGTH),
+        };
+        const updatedSites = [...sites];
+        updatedSites[siteIndex] = updatedSite;
         await this.ctx.storage.put("monitored_sites", updatedSites);
         return updatedSites;
     }

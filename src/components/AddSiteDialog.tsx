@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -21,13 +19,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Plus } from 'lucide-react';
 import useSitesStore from '@/hooks/use-sites-store';
 const formSchema = z.object({
   url: z.string().url({ message: 'Please enter a valid URL (e.g., https://example.com)' }),
 });
-export function AddSiteDialog() {
-  const [open, setOpen] = useState(false);
+interface AddSiteDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+export function AddSiteDialog({ open, onOpenChange }: AddSiteDialogProps) {
   const addSite = useSitesStore((s) => s.addSite);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,16 +38,10 @@ export function AddSiteDialog() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await addSite(values.url);
     form.reset();
-    setOpen(false);
+    onOpenChange(false);
   }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Site
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add a new site to monitor</DialogTitle>
@@ -56,7 +50,7 @@ export function AddSiteDialog() {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
             <FormField
               control={form.control}
               name="url"
@@ -71,6 +65,9 @@ export function AddSiteDialog() {
               )}
             />
             <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Adding...' : 'Add Site'}
               </Button>
