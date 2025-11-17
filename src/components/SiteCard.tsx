@@ -2,7 +2,7 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ const statusConfig: Record<SiteStatus, { label: string; icon: React.ElementType;
 };
 export function SiteCard({ site, onEdit }: SiteCardProps) {
   const removeSite = useSitesStore((s) => s.removeSite);
+  const recheckSite = useSitesStore((s) => s.recheckSite);
   const { label, icon: Icon, className } = statusConfig[site.status];
   const formattedUrl = site.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const chartData = site.history
@@ -145,9 +146,15 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
             <Pencil className="mr-2 h-4 w-4" />
             <span>Edit</span>
           </DropdownMenuItem>
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              <span>Re-check</span>
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50">
+            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50" onSelect={(e) => e.preventDefault()}>
               <Trash2 className="mr-2 h-4 w-4" />
               <span>Delete</span>
             </DropdownMenuItem>
@@ -156,15 +163,15 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
       </DropdownMenu>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this site from your monitoring list.
+            Do you want to manually trigger a new status check for "{site.name}"?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => removeSite(site.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Delete
+          <AlertDialogAction onClick={() => recheckSite(site.id)}>
+            Yes, Re-check
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
