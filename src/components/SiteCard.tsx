@@ -45,7 +45,7 @@ export function SiteCard({ site }: SiteCardProps) {
     }))
     .reverse();
   return (
-    <Card className="flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1 bg-card/80 backdrop-blur-sm">
+    <Card className="flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative">
       <CardHeader className="flex-row items-start justify-between gap-4 pb-2">
         <div className="space-y-1.5 overflow-hidden">
           <CardTitle className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
@@ -91,7 +91,12 @@ export function SiteCard({ site }: SiteCardProps) {
           </AlertDialogContent>
         </AlertDialog>
       </CardHeader>
-      <CardContent className="flex-grow flex items-center justify-center py-4 min-h-[120px]">
+      <CardContent className="flex-grow flex items-center justify-center py-4 min-h-[120px] relative">
+        {site.isRechecking && (
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-b-lg">
+            <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
         {site.history && site.history.length > 1 ? (
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>

@@ -7,7 +7,7 @@ import { AddSiteDialog } from '@/components/AddSiteDialog';
 import { EmptyState } from '@/components/EmptyState';
 import useSitesStore from '@/hooks/use-sites-store';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw, Loader } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 export function HomePage() {
@@ -16,10 +16,11 @@ export function HomePage() {
   const fetchSites = useSitesStore((s) => s.fetchSites);
   const recheckSite = useSitesStore((s) => s.recheckSite);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   useEffect(() => {
     fetchSites();
   }, [fetchSites]);
-  const stableRecheckSite = useCallback(recheckSite, []);
+  const stableRecheckSite = useCallback(recheckSite, [recheckSite]);
   useEffect(() => {
     if (sites.length > 0) {
       const interval = setInterval(() => {
@@ -30,6 +31,11 @@ export function HomePage() {
       return () => clearInterval(interval);
     }
   }, [sites, stableRecheckSite]);
+  const handleRefreshAll = async () => {
+    setIsRefreshingAll(true);
+    await Promise.all(sites.map(site => recheckSite(site.id)));
+    setIsRefreshingAll(false);
+  };
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -86,16 +92,28 @@ export function HomePage() {
                   Zenith Watch
                 </h1>
               </div>
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Site
-              </Button>
+              <div className="flex items-center gap-2">
+                {sites.length > 0 && (
+                  <Button variant="outline" onClick={handleRefreshAll} disabled={isRefreshingAll}>
+                    {isRefreshingAll ? (
+                      <Loader className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Refresh All
+                  </Button>
+                )}
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Site
+                </Button>
+              </div>
             </header>
             <main>{renderContent()}</main>
           </div>
         </div>
         <footer className="py-6 text-center text-sm text-muted-foreground">
-          Built with ❤️ at Cloudflare
+          Built with ��️ at Cloudflare
         </footer>
       </div>
       <AddSiteDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
