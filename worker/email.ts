@@ -8,9 +8,9 @@ export async function sendDowntimeAlert(siteName: string, siteUrl: string, toEma
     ],
     from: {
       email: 'alerts@website-monitor.app',
-      name: 'Website Monitor Tool Alerts',
+      name: 'Website Monitor Alerts',
     },
-    subject: `[Website Monitor Tool Alert] Your site "${siteName}" is down!`,
+    subject: `[Alert] Your site "${siteName}" is down!`,
     content: [
       {
         type: 'text/html',
@@ -25,7 +25,7 @@ export async function sendDowntimeAlert(siteName: string, siteUrl: string, toEma
                 <li><strong>Time of Detection:</strong> ${new Date().toUTCString()}</li>
               </ul>
               <p>We will continue to monitor the site and will notify you if its status changes.</p>
-              <p>— The Website Monitor Tool Team</p>
+              <p>— The Website Monitor Team</p>
             </body>
           </html>
         `,
@@ -48,57 +48,5 @@ export async function sendDowntimeAlert(siteName: string, siteUrl: string, toEma
     }
   } catch (error) {
     console.error(`Error sending downtime alert for ${siteName} via MailChannels:`, error);
-  }
-}
-export async function sendRecoveryAlert(siteName: string, siteUrl: string, toEmail: string): Promise<void> {
-  const mailchannelsApiUrl = 'https://api.mailchannels.net/tx/v1/send';
-  const emailBody = {
-    personalizations: [
-      {
-        to: [{ email: toEmail }],
-      },
-    ],
-    from: {
-      email: 'alerts@website-monitor.app',
-      name: 'Website Monitor Tool Alerts',
-    },
-    subject: `[Website Monitor Tool Recovery] Your site "${siteName}" is back up!`,
-    content: [
-      {
-        type: 'text/html',
-        value: `
-          <html>
-            <body style="font-family: sans-serif; line-height: 1.6;">
-              <h2>Website Recovery Alert</h2>
-              <p>This is an automated notification to inform you that your monitored website, <strong>${siteName}</strong>, is back up and running.</p>
-              <ul>
-                <li><strong>Site Name:</strong> ${siteName}</li>
-                <li><strong>URL:</strong> <a href="${siteUrl}">${siteUrl}</a></li>
-                <li><strong>Time of Recovery:</strong> ${new Date().toUTCString()}</li>
-              </ul>
-              <p>We will continue to monitor the site.</p>
-              <p>— The Website Monitor Tool Team</p>
-            </body>
-          </html>
-        `,
-      },
-    ],
-  };
-  try {
-    const response = await fetch(mailchannelsApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emailBody),
-    });
-    if (response.status === 202) {
-      console.log(`Recovery alert for ${siteName} successfully sent to ${toEmail}.`);
-    } else {
-      const errorBody = await response.text();
-      console.error(`Failed to send recovery alert for ${siteName}. MailChannels API responded with status ${response.status}: ${errorBody}`);
-    }
-  } catch (error) {
-    console.error(`Error sending recovery alert for ${siteName} via MailChannels:`, error);
   }
 }

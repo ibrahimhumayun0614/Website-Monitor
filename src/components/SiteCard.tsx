@@ -2,7 +2,7 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -124,6 +124,12 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
           <span className="truncate">Checked {formatDistanceToNow(new Date(site.lastChecked), { addSuffix: true })}</span>
         </div>
       )}
+      {site.notificationEmail && (
+        <div className="flex items-center gap-2 truncate">
+          <Mail className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Alerts to: <span className="font-medium text-foreground">{site.notificationEmail}</span></span>
+        </div>
+      )}
     </div>
   );
   const ActionsMenu = () => (
@@ -195,7 +201,7 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
           <p className="text-xs text-muted-foreground font-medium mb-2">Performance</p>
           <PerformanceChart />
         </div>
-        {(site.maintainer || site.domainExpiry) && (
+        {(site.maintainer || site.domainExpiry || site.notificationEmail) && (
           <div className="p-3 rounded-md bg-background/50">
             <Metadata />
           </div>

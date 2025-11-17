@@ -39,6 +39,7 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
       name: '',
       url: '',
       maintainer: '',
+      notificationEmail: '',
     },
   });
   useEffect(() => {
@@ -48,6 +49,7 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
         url: siteToEdit.url,
         maintainer: siteToEdit.maintainer || '',
         domainExpiry: siteToEdit.domainExpiry ? new Date(siteToEdit.domainExpiry) : undefined,
+        notificationEmail: siteToEdit.notificationEmail || '',
       });
     } else if (!open) {
       form.reset({
@@ -55,6 +57,7 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
         url: '',
         maintainer: '',
         domainExpiry: undefined,
+        notificationEmail: '',
       });
     }
   }, [siteToEdit, open, form]);
@@ -62,6 +65,7 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
     const payload = {
       ...values,
       domainExpiry: values.domainExpiry ? values.domainExpiry.toISOString() : undefined,
+      notificationEmail: values.notificationEmail || undefined,
     };
     if (isEditMode && siteToEdit) {
       await updateSite(siteToEdit.id, payload);
@@ -126,6 +130,19 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
               control={form.control}
               name="domainExpiry"
               render={({ field }) => <DomainExpiryInput field={field} />}
+            />
+            <FormField
+              control={form.control}
+              name="notificationEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notification Email (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="alerts@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
