@@ -5,8 +5,8 @@ type EmptyStateProps = {
 };
 export function EmptyState({ onAddSite }: EmptyStateProps) {
   return (
-    <div className="text-center py-24 px-6 bg-slate-50/50 rounded-2xl border border-dashed animate-fade-in">
-      <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 mb-6">
+    <div className="text-center py-24 px-6 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border border-dashed animate-fade-in">
+      <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
         <Globe className="h-8 w-8 text-slate-500" />
       </div>
       <h2 className="text-2xl font-semibold text-foreground mb-2">
