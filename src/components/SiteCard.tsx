@@ -2,7 +2,7 @@ import { MonitoredSite, SiteStatus } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Globe, Loader, MoreVertical, Trash2, XCircle, LineChart as LineChartIcon, User, Calendar, ExternalLink, Pencil, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -25,7 +25,7 @@ import {
 import useSitesStore from '@/hooks/use-sites-store';
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useTheme } from '@/hooks/use-theme';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 interface SiteCardProps {
   site: MonitoredSite;
   onEdit: (site: MonitoredSite) => void;
@@ -120,6 +120,12 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
           <span className="truncate">Expires in {formatDistanceToNow(new Date(site.domainExpiry), { addSuffix: true })}</span>
         </div>
       )}
+       {site.lastChecked && (
+        <div className="flex items-center gap-2 truncate">
+          <Clock className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">Checked {formatDistanceToNow(new Date(site.lastChecked), { addSuffix: true })}</span>
+        </div>
+      )}
     </div>
   );
   const ActionsMenu = () => (
@@ -194,6 +200,11 @@ export function SiteCard({ site, onEdit }: SiteCardProps) {
         {(site.maintainer || site.domainExpiry) && (
           <div className="p-3 rounded-md bg-background/50">
             <Metadata />
+          </div>
+        )}
+        {site.lastChecked && (
+          <div className="text-right text-xs text-muted-foreground pt-2">
+            Last checked: {new Date(site.lastChecked).toLocaleString()}
           </div>
         )}
       </div>
