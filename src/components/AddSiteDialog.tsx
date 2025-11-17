@@ -20,6 +20,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import useSitesStore from '@/hooks/use-sites-store';
 import type { MonitoredSite } from '@shared/types';
 import { DomainExpiryInput } from './DomainExpiryInput';
@@ -40,6 +42,8 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
       url: '',
       maintainer: '',
       notificationEmail: '',
+      httpMethod: 'HEAD',
+      httpHeaders: '',
     },
   });
   useEffect(() => {
@@ -50,6 +54,8 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
         maintainer: siteToEdit.maintainer || '',
         domainExpiry: siteToEdit.domainExpiry ? new Date(siteToEdit.domainExpiry) : undefined,
         notificationEmail: siteToEdit.notificationEmail || '',
+        httpMethod: siteToEdit.httpMethod || 'HEAD',
+        httpHeaders: siteToEdit.httpHeaders ? JSON.stringify(siteToEdit.httpHeaders, null, 2) : '',
       });
     } else if (!open) {
       form.reset({
@@ -58,6 +64,8 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
         maintainer: '',
         domainExpiry: undefined,
         notificationEmail: '',
+        httpMethod: 'HEAD',
+        httpHeaders: '',
       });
     }
   }, [siteToEdit, open, form]);
@@ -66,6 +74,7 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
       ...values,
       domainExpiry: values.domainExpiry ? values.domainExpiry.toISOString() : undefined,
       notificationEmail: values.notificationEmail || undefined,
+      httpHeaders: values.httpHeaders ? JSON.parse(values.httpHeaders) : undefined,
     };
     if (isEditMode && siteToEdit) {
       await updateSite(siteToEdit.id, payload);
@@ -139,6 +148,53 @@ export function AddSiteDialog({ open, onOpenChange, siteToEdit }: AddSiteDialogP
                   <FormLabel>Notification Email (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="alerts@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="httpMethod"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>HTTP Method</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || 'HEAD'}
+                      className="flex items-center space-x-4"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="HEAD" />
+                        </FormControl>
+                        <FormLabel className="font-normal">HEAD</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="GET" />
+                        </FormControl>
+                        <FormLabel className="font-normal">GET</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="httpHeaders"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custom Headers (JSON)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder='{ "Authorization": "Bearer your_token" }'
+                      className="font-mono h-24"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

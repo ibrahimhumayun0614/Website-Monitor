@@ -11,6 +11,8 @@ export interface MonitoredSite {
   domainExpiry?: string;
   maintainer?: string;
   notificationEmail?: string;
+  httpMethod?: 'HEAD' | 'GET';
+  httpHeaders?: Record<string, string>;
   status: SiteStatus;
   responseTime: number | null;
   lastChecked: string | null;

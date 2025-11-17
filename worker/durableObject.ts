@@ -9,6 +9,8 @@ type NewSitePayload = {
     domainExpiry?: string;
     maintainer?: string;
     notificationEmail?: string;
+    httpMethod?: 'HEAD' | 'GET';
+    httpHeaders?: Record<string, string>;
 };
 type UpdateSitePayload = Partial<NewSitePayload>;
 // **DO NOT MODIFY THE CLASS NAME**
@@ -63,12 +65,17 @@ export class GlobalDurableObject extends DurableObject {
         const sites = await this.ctx.storage.get<MonitoredSite[]>("monitored_sites");
         return sites || [];
     }
-    async checkSite(url: string): Promise<SiteCheck> {
+    async checkSite(site: Pick<MonitoredSite, 'url' | 'httpMethod' | 'httpHeaders'>): Promise<SiteCheck> {
         const startTime = Date.now();
         let status: SiteStatus = 'DOWN';
         let responseTime: number | null = null;
         try {
-            const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+            const fetchOptions: RequestInit = {
+                method: site.httpMethod || 'HEAD',
+                redirect: 'follow',
+                headers: site.httpHeaders || {},
+            };
+            const response = await fetch(site.url, fetchOptions);
             responseTime = Date.now() - startTime;
             if (response.ok) {
                 status = 'UP';
@@ -78,7 +85,7 @@ export class GlobalDurableObject extends DurableObject {
                 status = 'DOWN';
             }
         } catch (error) {
-            console.error(`Error checking ${url}:`, error);
+            console.error(`Error checking ${site.url}:`, error);
             status = 'DOWN';
         }
         return {
@@ -93,14 +100,10 @@ export class GlobalDurableObject extends DurableObject {
             // Site already exists, do not add again.
             return sites;
         }
-        const initialCheck = await this.checkSite(payload.url);
+        const initialCheck = await this.checkSite(payload);
         const newSite: MonitoredSite = {
             id: crypto.randomUUID(),
-            url: payload.url,
-            name: payload.name,
-            domainExpiry: payload.domainExpiry,
-            maintainer: payload.maintainer,
-            notificationEmail: payload.notificationEmail,
+            ...payload,
             status: initialCheck.status,
             responseTime: initialCheck.responseTime,
             lastChecked: initialCheck.timestamp,
@@ -118,13 +121,13 @@ export class GlobalDurableObject extends DurableObject {
         }
         const originalSite = sites[siteIndex];
         const updatedSite = { ...originalSite, ...updates };
-        // If URL changed, we should re-check it.
-        if (updates.url && updates.url !== originalSite.url) {
-            const checkResult = await this.checkSite(updates.url);
+        // If URL or check parameters changed, we should re-check it.
+        if (updates.url && updates.url !== originalSite.url || updates.httpMethod !== originalSite.httpMethod || JSON.stringify(updates.httpHeaders) !== JSON.stringify(originalSite.httpHeaders)) {
+            const checkResult = await this.checkSite(updatedSite);
             updatedSite.status = checkResult.status;
             updatedSite.responseTime = checkResult.responseTime;
             updatedSite.lastChecked = checkResult.timestamp;
-            updatedSite.history = [checkResult]; // Reset history for new URL
+            updatedSite.history = [checkResult]; // Reset history for new URL/params
         }
         const updatedSites = [...sites];
         updatedSites[siteIndex] = updatedSite;
@@ -146,7 +149,7 @@ export class GlobalDurableObject extends DurableObject {
         }
         const siteToCheck = sites[siteIndex];
         const previousStatus = siteToCheck.status;
-        const checkResult = await this.checkSite(siteToCheck.url);
+        const checkResult = await this.checkSite(siteToCheck);
         const updatedSite: MonitoredSite = {
             ...siteToCheck,
             status: checkResult.status,

@@ -6,6 +6,9 @@ type NewSitePayload = {
     name: string;
     domainExpiry?: string;
     maintainer?: string;
+    notificationEmail?: string;
+    httpMethod?: 'HEAD' | 'GET';
+    httpHeaders?: Record<string, string>;
 };
 type UpdateSitePayload = Partial<NewSitePayload>;
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
