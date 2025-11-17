@@ -79,14 +79,14 @@ export function HomePage() {
     return (
       <div className="flex flex-col gap-4">
         <AnimatePresence>
-          {sites.map((site) => (
+          {sites.map((site, i) => (
             <motion.div
               key={site.id}
               layout
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: 0.3, ease: 'easeOut', delay: i * 0.07 }}
             >
               <SiteCard site={site} onEdit={handleEditSiteClick} />
             </motion.div>
