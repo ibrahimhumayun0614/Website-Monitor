@@ -1,6 +1,12 @@
 import { Hono } from "hono";
 import { Env } from './core-utils';
 import type { ApiResponse, MonitoredSite } from '@shared/types';
+type NewSitePayload = {
+    url: string;
+    name: string;
+    domainExpiry?: string;
+    maintainer?: string;
+};
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
     // Zenith Watch API
     app.get('/api/sites', async (c) => {
@@ -10,12 +16,12 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     });
     app.post('/api/sites', async (c) => {
         try {
-            const body = await c.req.json<{ url: string }>();
-            if (!body.url) {
-                return c.json({ success: false, error: 'URL is required' }, 400);
+            const body = await c.req.json<NewSitePayload>();
+            if (!body.url || !body.name) {
+                return c.json({ success: false, error: 'URL and Name are required' }, 400);
             }
             const durableObjectStub = c.env.GlobalDurableObject.get(c.env.GlobalDurableObject.idFromName("global"));
-            const data = await durableObjectStub.addSite(body.url);
+            const data = await durableObjectStub.addSite(body);
             return c.json({ success: true, data } satisfies ApiResponse<MonitoredSite[]>);
         } catch (e) {
             return c.json({ success: false, error: 'Invalid request body' }, 400);
